@@ -118,11 +118,11 @@ class MyDataCollator:
 
 if __name__ == '__main__':
     config = VLMConfig()
-    processor = AutoProcessor.from_pretrained("/home/user/wyf/siglip-base-patch16-224")
-    tokenizer = AutoTokenizer.from_pretrained('/home/user/Downloads/Qwen2.5-0.5B-Instruct')
+    processor = AutoProcessor.from_pretrained("./model/siglip-base-patch16-224")
+    tokenizer = AutoTokenizer.from_pretrained('./model/Qwen2.5-0.5B-Instruct')
     AutoConfig.register("vlm_model", VLMConfig)
     AutoModelForCausalLM.register(VLMConfig, VLM)
-    model = AutoModelForCausalLM.from_pretrained('/home/user/wyf/train_multimodal_from_scratch/save/pretrain')
+    model = AutoModelForCausalLM.from_pretrained('./save/pretrain')
     
     for name, param in model.named_parameters():
         if 'linear' in name or 'vision_model':
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     print(f'模型可训练参数量为：{sum(p.numel() for p in model.parameters() if p.requires_grad)}') 
     images_path = './sft_images'
     data_path = './dataset/llava_instruct_230k.json'
-    output_dir = 'save/sft' 
+    output_dir = './save/sft' 
     args = TrainingArguments(
         output_dir=output_dir,
         do_train=True,
@@ -157,5 +157,5 @@ if __name__ == '__main__':
     )
     
     trainer.train(resume_from_checkpoint=True)
-    trainer.save_model('save/sft')
+    trainer.save_model('./save/sft')
     trainer.save_state()

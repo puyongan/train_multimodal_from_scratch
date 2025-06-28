@@ -2,13 +2,13 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor, Aut
 from PIL import Image
 from train import VLMConfig, VLM
 
-device = "cuda:2"
-processor = AutoProcessor.from_pretrained("/home/user/Downloads/siglip-base-patch16-224")
-tokenizer = AutoTokenizer.from_pretrained('/home/user/Downloads/Qwen2.5-0.5B-Instruct')
+device = torch.device("cuda")
+processor = AutoProcessor.from_pretrained("./model/siglip-base-patch16-224")
+tokenizer = AutoTokenizer.from_pretrained('./model/Qwen2.5-0.5B-Instruct')
 AutoConfig.register("vlm_model", VLMConfig)
 AutoModelForCausalLM.register(VLMConfig, VLM)
 
-model = AutoModelForCausalLM.from_pretrained('/home/user/wyf/train_multimodal_from_scratch/save/sft_multi_image_v2')
+model = AutoModelForCausalLM.from_pretrained('./save/sft_multi_image_v2')
 model.to(device)
 # q_text = tokenizer.apply_chat_template([{"role":"system", "content":'You are a helpful assistant.'}, {"role":"user", "content":'第二张图上面有什么\n<image><image>'}], \
 #             tokenize=False, \
