@@ -17,6 +17,7 @@ from typing import List, Dict, Any
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor, AutoConfig
 from PIL import Image
 from train import VLMConfig, VLM
+from datasets import load_dataset
 
 
 def find_assistant_tokens(tokenizer, target):
@@ -42,8 +43,11 @@ class SFTDataset(Dataset):
         self.tokenizer = tokenizer
         self.processor = processor
         self.config = config
-        with open(self.data_path, 'r', encoding='utf-8') as f:
-            self.datas = json.load(f)   
+        # with open(self.data_path, 'r', encoding='utf-8') as f:
+        #     self.datas = json.load(f)   
+
+        sft_dataset = load_dataset("json", data_files=data_path, split="train")
+        self.datas = sft_dataset.to_list()  # 转为列表
         
             
     def __len__(self):
@@ -122,7 +126,7 @@ if __name__ == '__main__':
     tokenizer = AutoTokenizer.from_pretrained('./model/Qwen2.5-0.5B-Instruct')
     AutoConfig.register("vlm_model", VLMConfig)
     AutoModelForCausalLM.register(VLMConfig, VLM)
-    model = AutoModelForCausalLM.from_pretrained('./save/pretrain')
+    model = AutoModelForCausalLM.from_pretrained('./save/pretrain/checkpoint-500')
     
     for name, param in model.named_parameters():
         if 'linear' in name or 'vision_model':
@@ -131,15 +135,15 @@ if __name__ == '__main__':
             param.requires_grad = True
     print(f'模型参数量为：{sum(p.numel() for p in model.parameters())}') 
     print(f'模型可训练参数量为：{sum(p.numel() for p in model.parameters() if p.requires_grad)}') 
-    images_path = './sft_images'
-    data_path = './dataset/llava_instruct_230k.json'
+    images_path = './dataset/sft/sft_images/sft_images'
+    data_path = './dataset/sft/sft_data.jsonl'
     output_dir = './save/sft' 
     args = TrainingArguments(
         output_dir=output_dir,
         do_train=True,
         per_device_train_batch_size=2,
         learning_rate=1e-4,
-        num_train_epochs=5,
+        num_train_epochs=1,
         save_steps=500,
         save_total_limit=2,
         fp16=True,
@@ -156,6 +160,6 @@ if __name__ == '__main__':
         data_collator=MyDataCollator(tokenizer)  
     )
     
-    trainer.train(resume_from_checkpoint=True)
+    trainer.train(resume_from_checkpoint=False)
     trainer.save_model('./save/sft')
     trainer.save_state()

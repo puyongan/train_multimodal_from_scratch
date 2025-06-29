@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor, AutoConfig
 from PIL import Image
 from train import VLMConfig, VLM
+import torch
 
 device = torch.device("cuda")
 processor = AutoProcessor.from_pretrained("./model/siglip-base-patch16-224")
@@ -8,7 +9,7 @@ tokenizer = AutoTokenizer.from_pretrained('./model/Qwen2.5-0.5B-Instruct')
 AutoConfig.register("vlm_model", VLMConfig)
 AutoModelForCausalLM.register(VLMConfig, VLM)
 
-model = AutoModelForCausalLM.from_pretrained('./save/sft')
+model = AutoModelForCausalLM.from_pretrained('./save/pretrain/checkpoint-500')
 model.to(device)
 q_text = tokenizer.apply_chat_template([{"role":"system", "content":'You are a helpful assistant.'}, {"role":"user", "content":'描述图片内容\n<image>'}], \
             tokenize=False, \
@@ -16,7 +17,7 @@ q_text = tokenizer.apply_chat_template([{"role":"system", "content":'You are a h
 
 input_ids = tokenizer(q_text, return_tensors='pt')['input_ids']
 input_ids = input_ids.to(device)
-image = Image.open('./test_images/th4.png').convert("RGB")
+image = Image.open('./test_images/th4.jpg').convert("RGB")
 pixel_values = processor(text=None, images=image).pixel_values
 pixel_values = pixel_values.to(device)
 model.eval()
