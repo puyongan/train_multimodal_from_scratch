@@ -17,7 +17,7 @@ from typing import List, Dict, Any
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoProcessor, AutoConfig
 from PIL import Image
 from train import VLMConfig, VLM
-from datasets import load_dataset
+
 
 
 def find_assistant_tokens(tokenizer, target):
@@ -46,8 +46,8 @@ class SFTDataset(Dataset):
         # with open(self.data_path, 'r', encoding='utf-8') as f:
         #     self.datas = json.load(f)   
 
-        sft_dataset = load_dataset("json", data_files=data_path, split="train")
-        self.datas = sft_dataset.to_list()  # 转为列表
+        with open(self.data_path, 'r', encoding='utf-8') as f:
+            self.datas = [json.loads(line) for line in f]
         
             
     def __len__(self):
